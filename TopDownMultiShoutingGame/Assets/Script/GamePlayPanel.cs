@@ -20,19 +20,14 @@ public class GamePlayPanel : MonoBehaviourPunCallbacks
 
     private Dictionary<string, int> playerPointNote = new Dictionary<string, int>();
 
-    private void Awake()
-    {
-        PhotonNetwork.SendRate = 60;
-        PhotonNetwork.SerializationRate = 30;
-    }
-
     private void OnEnable()
     {
+        //들어올때 현제 방안에 있는 플레이어들 설정을 해준다
         foreach (var player in PhotonNetwork.PlayerList)
         {
             setPoint(player.NickName, 0);
         }
-
+        pv.RPC("SYNC_All", RpcTarget.All);
         InvokeRepeating("updateScore", 1.0f, 3.0f);
     }
 
@@ -88,7 +83,7 @@ public class GamePlayPanel : MonoBehaviourPunCallbacks
             //없어진사람 삭제
             foreach (string checkingPerson in checkingList)
             {
-                checkingList.Remove(checkingPerson);
+                removePointDictEntry(checkingPerson);
             }
         }
     }
@@ -100,4 +95,7 @@ public class GamePlayPanel : MonoBehaviourPunCallbacks
     {
         setPoint(nickName, point);
     }
+
+    [PunRPC]
+    public void SYNC_All() => pv.RPC("SYNC_PlayerInfo", RpcTarget.All, PhotonNetwork.NickName, playerPointNote[PhotonNetwork.NickName]);
 }

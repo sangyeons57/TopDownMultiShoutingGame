@@ -52,6 +52,7 @@ MonoBehaviour:
   - addPoint
   - removePointDictEntry
   - SYNC_PlayerInfo
+  - SYNC_All
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
