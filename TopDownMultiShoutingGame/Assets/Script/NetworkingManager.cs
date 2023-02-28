@@ -19,6 +19,7 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     private int roomcount;
 
+
     private void Awake()
     {
         Screen.SetResolution(960, 540, false);
@@ -46,31 +47,57 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        DisconnectPanel.SetActive(false);
         roomcount = 0;
+        //닉네임 겹치는 경우
+        if( !isableUseThisNickName() )
+        {
+            PhotonNetwork.Disconnect();
+
+            DisconnectPanel.transform.Find("status").GetComponent<TMP_Text>()
+                .text = "NICKNAME is already used";
+            return;
+        }
+        //정상 접속시 텍스트 삭제
+        else DisconnectPanel.transform.Find("status").GetComponent<TMP_Text>().text = "";
+
+        DisconnectPanel.SetActive(false);
+        GamePlayPanel.SetActive(true);
         Spawn();
+    }
+    
+    private bool isableUseThisNickName()
+    {
+        int counter = 0;
+        foreach(var player in PhotonNetwork.PlayerList)
+        {
+            if( player.NickName == PhotonNetwork.NickName ) counter++;
+        }
+        return counter == 1 ? true : false;
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)&& PhotonNetwork.IsConnected) PhotonNetwork.Disconnect();
+        if (Input.GetKeyDown(KeyCode.Escape) && PhotonNetwork.IsConnected)
+        {
+            GamePlayPanel.GetComponent<PhotonView>()
+                .RPC("removePointDictEntry", RpcTarget.All, PhotonNetwork.NickName);
+            Invoke("disconnect", 0.5f);
+        }
     }
+    private void disconnect() => PhotonNetwork.Disconnect();
 
     public override void OnDisconnected(DisconnectCause cause)
     {
         DisconnectPanel.SetActive(true);
         RespawnPanel.SetActive(false);
+        GamePlayPanel.SetActive(false);
     }
 
     public void Spawn()
     {
         PhotonNetwork.Instantiate(characterName1.name, Vector3.zero, Quaternion.identity);
         RespawnPanel.SetActive(false);
-        GamePlayPanel.SetActive(true);
     }
-
-
-
 
 
     [ContextMenu("정보")]
@@ -96,6 +123,5 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
             Debug.Log("연결됐는지: " + PhotonNetwork.IsConnected);
         }
     }
-
 
 }

@@ -1,34 +1,103 @@
 using Photon.Pun;
+using Photon.Pun.Demo.PunBasics;
 using Photon.Realtime;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GamePlayPanel : MonoBehaviourPunCallbacks
 {
-    PhotonView pv;
+
+    public PhotonView pv;
 
     [SerializeField]
-    private TMP_Text[] scoreTextList;
+    private GameObject scoreInstance;
+
+    private Dictionary<string, int> playerPointNote = new Dictionary<string, int>();
+
+    private void Awake()
+    {
+        PhotonNetwork.SendRate = 60;
+        PhotonNetwork.SerializationRate = 30;
+    }
 
     private void OnEnable()
     {
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            setPoint(player.NickName, 0);
+        }
+
         InvokeRepeating("updateScore", 1.0f, 3.0f);
     }
 
     void updateScore()
     {
-        GameObject[] enemys = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject obj in GameObject.FindGameObjectsWithTag("Score")) Destroy(obj);
 
-        PlayerScript playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerScript>();
-        scoreTextList[0].text = $"{1}. {playerScript.nicknameText.text} : {playerScript.playerPoint}";
-        for (int i = 1; i <= enemys.Length; i++)
+        checkPlayerNumber();
+        var sortingDict = from pair in playerPointNote
+                    orderby pair.Value descending
+                    select pair;
+        int i = 0;
+        foreach (KeyValuePair<string,int> pair in sortingDict)
         {
-            playerScript = enemys[i - 1].GetComponent<PlayerScript>();
-            scoreTextList[i].text = $"{i+1}. {playerScript.nicknameText.text} : {playerScript.playerPoint}";
+            GameObject obj = Instantiate(scoreInstance, gameObject.transform);
+            obj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-75, -25 + (-20) * i);
+            obj.GetComponent<TMP_Text>().text = $"{(int)i + 1}. {pair.Key} {pair.Value}";
+
+            i++;
         }
     }
 
+    [PunRPC]
+    public void removePointDictEntry(string nickName)
+    {
+        Debug.Log("removePointDIctEntry");
+        playerPointNote.Remove(nickName);
+    }
+
+    public void setPoint(string nickName, int point)
+    {
+        if (!playerPointNote.ContainsKey(nickName)) playerPointNote.Add(nickName, 0);
+        playerPointNote[nickName] = point;
+    }
+    
+    public int getPoint (string nickName)
+    {
+        if (!playerPointNote.ContainsKey(nickName)) playerPointNote.Add(nickName, 0);
+        return playerPointNote[nickName];
+    }
+
+    public void checkPlayerNumber()
+    {
+        if (PhotonNetwork.PlayerList.Length != playerPointNote.Count)
+        {
+            List<string> checkingList = playerPointNote.Keys.ToList();
+            //추가된 사람 데이터에 추가
+            foreach (var player in PhotonNetwork.PlayerList)
+            {
+                checkingList.Remove(player.NickName);
+                if (!playerPointNote.ContainsKey(player.NickName)) setPoint(player.NickName, 0);
+            }
+            //없어진사람 삭제
+            foreach (string checkingPerson in checkingList)
+            {
+                checkingList.Remove(checkingPerson);
+            }
+        }
+    }
+
+    public void addPoint(string nickName, int point) => pv.RPC("SYNC_PlayerInfo", RpcTarget.All, nickName, playerPointNote[nickName] += point);
+
+    [PunRPC]
+    public void SYNC_PlayerInfo(string nickName, int point) 
+    {
+        setPoint(nickName, point);
+    }
 }

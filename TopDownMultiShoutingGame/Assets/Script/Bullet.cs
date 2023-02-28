@@ -24,11 +24,6 @@ public class Bullet : MonoBehaviourPunCallbacks , IPunObservable
         transform.Translate(dir * 7 * Time.deltaTime);
     }
 
-    public GameObject setting(GameObject player)
-    {
-        this.player = player;
-        return gameObject;
-    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -42,10 +37,10 @@ public class Bullet : MonoBehaviourPunCallbacks , IPunObservable
 
 
     [PunRPC]
-    public void settingRPC()
+    public void settingRPC(string nickName)
     {
         if (pv.IsMine) dir = ((Vector2)(Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position)).normalized;
-        this.player = GameObject.FindGameObjectWithTag("Player");
+        this.player = GameObject.Find(nickName);
     }
 
     [PunRPC]

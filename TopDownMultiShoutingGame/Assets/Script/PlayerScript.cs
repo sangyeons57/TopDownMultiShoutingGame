@@ -17,24 +17,19 @@ public class PlayerScript : MonoBehaviour, IPunObservable
     public bool isGround;
     private Vector3 curPos;
 
-    public int playerPoint { get; set; } = 0;
 
     private void Awake()
     {
         //자기 자신이면 photonNetwork에 저장했던 닉넴임 아니면 해당 플레이어의 닉네임
         nicknameText.text = pv.IsMine ? PhotonNetwork.NickName : pv.Owner.NickName;
-
+        transform.name = nicknameText.text;
         nicknameText.color = pv.IsMine ? Color.green : Color.red;
 
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        if (pv.IsMine)
-            transform.tag = "Player";
-        else
-            transform.tag = "Enemy";
-        if (pv.IsMine) foreach (GameObject go in GameObject.FindGameObjectsWithTag("Bullet")) Destroy(go);
+        Invoke("bulleteDelete", 0.1f);
     }
 
     // Update is called once per frame
@@ -54,13 +49,11 @@ public class PlayerScript : MonoBehaviour, IPunObservable
             if (Input.GetMouseButtonDown(0))
             {
                 PhotonNetwork.Instantiate("Bullet", transform.position, Quaternion.identity)
-                    .GetComponent<PhotonView>().RPC("settingRPC", RpcTarget.All);
+                    .GetComponent<PhotonView>().RPC("settingRPC", RpcTarget.All, PhotonNetwork.NickName);
             }
         }
         else if ((transform.position - curPos).sqrMagnitude >= 100) transform.position = curPos;
         else transform.position = Vector3.Lerp(transform.position, curPos, Time.deltaTime * 10);
-
-
     }
 
     [PunRPC]
@@ -78,18 +71,18 @@ public class PlayerScript : MonoBehaviour, IPunObservable
         {
             GameObject.Find("Canvas").transform.Find("RespawnPannel").gameObject.SetActive(true);
 
-            hittedBy.GetComponent<PhotonView>().RPC("playerPointPlusRPC",RpcTarget.All, 1);
-            GameObject.Find("Canvas").transform.Find("GamePlayPanel").gameObject.SetActive(false);
-
-
+            Debug.Log($"hitted by : {hittedBy.name}");
+            hittedBy.GetComponent<PhotonView>().RPC("playerPointPlusRPC",RpcTarget.AllBuffered, 1);
             pv.RPC("DestroyRPC", RpcTarget.AllBuffered);
         }
     }
+
     [PunRPC]
-    public void playerPointPlusRPC(int addnum)
+    public void playerPointPlusRPC (int point)
     {
-        if (pv.IsMine) playerPoint += addnum;
-        Debug.Log(playerPoint);
+        Debug.Log($"playerPointPluscRPC {PhotonNetwork.NickName}");
+        if (pv.IsMine) GameObject.Find("Canvas").transform.Find("GamePlayPanel").GetComponent<GamePlayPanel>()
+                .addPoint(PhotonNetwork.NickName, point);
     }
 
     [PunRPC]
@@ -101,13 +94,16 @@ public class PlayerScript : MonoBehaviour, IPunObservable
         {
             stream.SendNext(transform.position);
             stream.SendNext(healthImage.fillAmount);
-            stream.SendNext(playerPoint);
         }
         else
         {
             curPos = (Vector3)stream.ReceiveNext();
             healthImage.fillAmount = (float)stream.ReceiveNext();
-            playerPoint = (int)stream.ReceiveNext();
         }
+    }
+
+    private void bulleteDelete()
+    {
+        if (pv.IsMine) foreach (GameObject deleteBullet in GameObject.FindGameObjectsWithTag("Bullet")) Destroy(deleteBullet);
     }
 }
