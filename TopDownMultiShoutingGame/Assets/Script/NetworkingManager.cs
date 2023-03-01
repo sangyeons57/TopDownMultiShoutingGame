@@ -15,10 +15,9 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     public GameObject RespawnPanel;
     public GameObject GamePlayPanel;
 
-    public GameObject characterName1;
-
     private int roomcount;
 
+    private string playerColor;
 
     private void Awake()
     {
@@ -48,31 +47,47 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         roomcount = 0;
-        //닉네임 겹치는 경우
-        if( !isableUseThisNickName() )
+        //1.사용 불가능한 닉네임을 사용한다
+        if (!isableUseThisNickName())
         {
             PhotonNetwork.Disconnect();
-
-            DisconnectPanel.transform.Find("status").GetComponent<TMP_Text>()
-                .text = "NICKNAME is already used";
+            setStausText("NICKNAME is already used \n or NICKNAME is an imposible");
             return;
         }
+        //2. 플레이어가 캐릭터을  안하거나
+        else if (DisconnectPanel.transform.Find("PlayerSelecter").GetComponent<Playerselecter>()
+            .selectedColor == "")
+        {
+            PhotonNetwork.Disconnect();
+            setStausText("select COLOR");
+            return;
+        }
+        // --중 하나라도 안하면 다시하게 한다
         //정상 접속시 텍스트 삭제
-        else DisconnectPanel.transform.Find("status").GetComponent<TMP_Text>().text = "";
+        else setStausText("");
 
+        //플레이어 color 세팅
+        playerColor = DisconnectPanel.transform.Find("PlayerSelecter").GetComponent<Playerselecter>().selectedColor;
+
+        //페널세팅
         DisconnectPanel.SetActive(false);
         GamePlayPanel.SetActive(true);
         Spawn();
     }
-    
+
+    //사용가능한 닉네임인가
     private bool isableUseThisNickName()
     {
+        //닉네임이 없는경우
+        if (PhotonNetwork.NickName == "") return false;
+
         int counter = 0;
         foreach(var player in PhotonNetwork.PlayerList)
         {
             if( player.NickName == PhotonNetwork.NickName ) counter++;
         }
-        return counter == 1 ? true : false;
+        //자신외에 같은 닉네임을 가진 플레이어가 있는 경우
+        return (counter == 1 ? true : false);
     }
 
     private void Update()
@@ -95,8 +110,15 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public void Spawn()
     {
-        PhotonNetwork.Instantiate(characterName1.name, Vector3.zero, Quaternion.identity);
+        PhotonNetwork.Instantiate(playerColor, Vector3.zero, Quaternion.identity);
         RespawnPanel.SetActive(false);
+    }
+
+    private void setStausText(string text)
+    {
+        DisconnectPanel.transform.Find("status").GetComponent<TMP_Text>()
+            .text = text; 
+
     }
 
 
