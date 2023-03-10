@@ -53,6 +53,10 @@ MonoBehaviour:
   - removePointDictEntry
   - SYNC_PlayerInfo
   - SYNC_All
+  - setPlayerNickname
+  - syncDir
+  - syncHealthAmount
+  - syncHit
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

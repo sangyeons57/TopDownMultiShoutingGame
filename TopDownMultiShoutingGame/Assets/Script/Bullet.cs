@@ -5,25 +5,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bullet : MonoBehaviourPunCallbacks , IPunObservable
+public class Bullet : MonoBehaviourPunCallbacks
 {
     public PhotonView pv;
-    Vector2 dir;
+    public Vector2 dir { get; set; } 
 
-    private int damage = 10;
-    private int speed = 7;
+    protected int damage { get; set; } = 10;
+    protected int speed { get; set; } = 7;
 
-    private GameObject player;
+    protected GameObject player;
 
-    // Start is called before the first frame update
-    private void Start() => Destroy(gameObject, 3.5f);
-
-    // Update is called once per frame
-    void Update()
-    {
-        transform.Translate(dir * 7 * Time.deltaTime);
-    }
-
+    protected int bulletNum;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -37,24 +29,22 @@ public class Bullet : MonoBehaviourPunCallbacks , IPunObservable
 
 
     [PunRPC]
-    public void settingRPC(string nickName)
+    public void settingRPC(string nickName, int bulletNum)
     {
         if (pv.IsMine) dir = ((Vector2)(Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position)).normalized;
         this.player = GameObject.Find(nickName);
+        this.bulletNum= bulletNum;
+
+        pv.RPC("syncDir", RpcTarget.All, dir);
     }
 
     [PunRPC]
-    void DestroyRPC() => Destroy(gameObject);
+    protected void DestroyRPC() => Destroy(gameObject);
 
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    [PunRPC]
+    protected void syncDir(Vector2 dir)
     {
-        if (pv.IsMine)
-        {
-            stream.SendNext(dir);
-        }
-        else
-        {
-            dir = (Vector2)stream.ReceiveNext();
-        }
+        if (!pv.IsMine) this.dir = dir;
     }
+
 }

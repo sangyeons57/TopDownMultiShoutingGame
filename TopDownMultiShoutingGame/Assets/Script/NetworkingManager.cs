@@ -19,12 +19,14 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     private string playerColor;
 
+
     private void Awake()
     {
         Screen.SetResolution(960, 540, false);
         PhotonNetwork.SendRate = 60;
         PhotonNetwork.SerializationRate = 30;
         roomcount = 0;
+
     }
 
     public void JoinOrCreateRoom()
@@ -110,8 +112,15 @@ public class NetworkingManager : MonoBehaviourPunCallbacks
 
     public void Spawn()
     {
-        PhotonNetwork.Instantiate(playerColor, Vector3.zero, Quaternion.identity);
+        PhotonNetwork.Instantiate($"player_{playerColor}", spawnPosition(), Quaternion.identity);
         RespawnPanel.SetActive(false);
+    }
+    
+    public Vector2 spawnPosition()
+    {
+        int xStart = -29; int xEnd = 21; int yStart = -4; int yEnd = 17;
+
+        return new Vector2(Random.Range(xStart, xEnd), Random.Range(yStart, yEnd));
     }
 
     private void setStausText(string text)

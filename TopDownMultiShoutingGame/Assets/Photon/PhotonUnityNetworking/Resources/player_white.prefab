@@ -91,8 +91,8 @@ GameObject:
   - component: {fileID: 1717958731120457297}
   - component: {fileID: 5900553288109904597}
   - component: {fileID: 3606742529921718847}
-  m_Layer: 0
-  m_Name: white
+  m_Layer: 16
+  m_Name: player_white
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -182,7 +182,7 @@ MonoBehaviour:
   Group: 0
   prefixField: -1
   Synchronization: 3
-  OwnershipTransfer: 2
+  OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
   - {fileID: 6192610884739968097}
@@ -202,12 +202,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 567f2e87d63653f48871c2715bba62d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pv: {fileID: 561931453998623628}
-  sr: {fileID: 561931453998623631}
-  nicknameText: {fileID: 4180677176508185789}
-  healthImage: {fileID: 7696145167948056725}
-  rb: {fileID: 3606742529921718847}
-  isGround: 0
+  playerSpeed: 3.5
+  jumpSize: 560
+  health: 100
+  reloadingSpeed: 0
+  bulletName: bullet_white
+  bulletNumber: 1
 --- !u!114 &1717958731120457297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -273,7 +273,7 @@ GameObject:
   - component: {fileID: 6102410858741379665}
   - component: {fileID: 4180677176508185789}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: NickName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -511,7 +511,7 @@ GameObject:
   - component: {fileID: 6675728625397204965}
   - component: {fileID: 7696145167948056725}
   m_Layer: 5
-  m_Name: Image (1)
+  m_Name: health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
