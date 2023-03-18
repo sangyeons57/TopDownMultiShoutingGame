@@ -54,7 +54,7 @@ public class PlayerScript : MonoBehaviour, IPunObservable
 
     private void OnEnable()
     {
-        Invoke("bulleteDelete", 0.1f);
+        Invoke("bulletDelete", 0.1f);
     }
 
     // Update is called once per frame
@@ -146,7 +146,7 @@ public class PlayerScript : MonoBehaviour, IPunObservable
         }
     }
 
-    private void bulleteDelete()
+    private void bulletDelete()
     {
         if (pv.IsMine) foreach (GameObject deleteBullet in GameObject.FindGameObjectsWithTag("Bullet")) Destroy(deleteBullet);
     }

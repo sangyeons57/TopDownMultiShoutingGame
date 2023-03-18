@@ -47,14 +47,8 @@ public class BulletRed : Bullet
 
             float rotateAmount = Vector3.Cross(direction, transform.up).z;
             rb.angularVelocity = -rotateAmount * rotateSpeed;
-
-            rb.velocity = transform.up * speed;
-
         }
-        else
-        {
-            rb.velocity = transform.up * speed;
-        }
+        rb.velocity = transform.up * speed;
     }
 
     [PunRPC]

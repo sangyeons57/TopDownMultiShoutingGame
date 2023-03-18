@@ -47,7 +47,7 @@ public class GamePlayPanel : MonoBehaviourPunCallbacks
                     orderby pair.Value descending
                     select pair;
 
-        //정령된거가지고 표시
+        //정렬된거가지고 표시
         int counter = 0;
         foreach (KeyValuePair<string,int> pair in sortingDict)
         {
